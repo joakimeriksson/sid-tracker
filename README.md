@@ -167,6 +167,7 @@ Then hard-reload the browser (Shift+Reload).
 - **[GoatTracker2](https://sourceforge.net/projects/goattracker2/)** - Reference implementation for GT2 compatibility
 - **Commodore 64** - The legendary machine and its SID chip
 - **HVSC** - High Voltage SID Collection
+- **[Pet Me 64](https://www.kreativekorp.com/software/fonts/c64/)** - Rebecca Bettencourt / Kreative Software, the C64 character ROM as a font
 
 ## License
 
@@ -181,10 +182,24 @@ scratch for AudioWorklet and *verified* against GoatTracker2 rather than derived
 from it - `make verify` diffs its SID register writes against `gplay.c` frame by
 frame. It is not affiliated with or endorsed by the GoatTracker2 project.
 
-The C64 Pro Mono font is not included. Style's license permits `@font-face` use
-but not redistribution, so `fonts/` is gitignored and every rule falls back to
-plain monospace. Grab it from [style64.org](https://style64.org/c64-truetype) and
-drop the `.woff`/`.woff2` in `fonts/` to get the real thing.
+Two C64 character-ROM fonts, because their licenses differ:
+
+- **Pet Me 64** by Rebecca Bettencourt / [Kreative Software](https://www.kreativekorp.com/software/fonts/c64/)
+  ships with this repo and is what the deployed tracker uses. Its licence
+  permits redistribution, and is included verbatim at
+  `fonts/PetMe64-FreeLicense.txt` as that licence requires. It may not be
+  modified, which is why it is a 380KB `.ttf` (~64KB gzipped) rather than a
+  subsetted woff2.
+- **C64 Pro Mono** by [Style](https://style64.org/c64-truetype) is the smaller,
+  nicer file, but its licence forbids providing the files for download from any
+  website - which a public repo does - so it is *not* here. `style.css` lists it
+  first, so download C64 TrueType v1.2.1/Style yourself, drop the
+  `.woff`/`.woff2` into `fonts/` unmodified under their own filenames, and it
+  takes over locally.
+
+The two are metrically identical - monospaced on a 1.000em cell, 0.875/-0.125em
+ascent/descent - so which one you have shifts nothing in the tracker's grid.
+Neither present falls back to plain monospace, which is legible but generic.
 
 ---
 

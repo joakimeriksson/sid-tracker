@@ -26,11 +26,16 @@ sids/*.sid
 # serves the file, and so does every source ZIP. So it cannot be committed
 # here, however much it belongs to the design.
 #
-# Every font-family falls back to plain monospace when it is absent, so a
-# fresh clone and the deployed site both work - they just look generic. To get
-# the real thing locally, download C64 TrueType v1.2.1/Style yourself from the
-# link above and drop the .woff/.woff2 in here under their own filenames.
-fonts/
+# So only Style's files are ignored - NOT the whole fonts/ directory, which
+# now also carries Pet Me 64 (the same Commodore 64 character ROM, from
+# Kreative Software) under a license that does permit redistribution. That one
+# ships with the repo and is what the deployed tracker uses; style.css lists
+# C64 Pro Mono first, so if you download C64 TrueType v1.2.1/Style yourself
+# from the link above and drop the .woff/.woff2 in here under their own
+# filenames, it wins locally. The two are metrically identical - both
+# monospaced at a 1.000em cell with 0.875/-0.125em ascent/descent - so
+# swapping between them shifts nothing in the grid.
+fonts/C64_Pro_Mono-STYLE.*
 
 # Pages build output (tools/build-pages.mjs)
 _site/

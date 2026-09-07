@@ -1,8 +1,30 @@
-/* === C64 Pro Mono Font === */
+/* === C64 character-ROM fonts ===
+   Two of them, in preference order, because their licenses differ.
+
+   C64 Pro Mono (Style, style64.org) is the nicer file - 5.8KB of woff2 - but
+   its license forbids providing the files for download from any website, so
+   it cannot be committed here. It loads only if you dropped it into fonts/
+   yourself; see .gitignore.
+
+   Pet Me 64 (Rebecca Bettencourt / Kreative Software) is the same Commodore 64
+   character ROM under a license that DOES permit redistribution, so it ships
+   with the repo and is what everyone else sees. It may not be modified, which
+   rules out converting it to woff2 or subsetting it - hence a 380KB .ttf,
+   about 64KB once served gzipped. fonts/PetMe64-FreeLicense.txt is that
+   license, included verbatim as it requires.
+
+   Then plain monospace, so the tracker is legible even with neither. */
 @font-face {
     font-family: 'C64 Pro Mono';
     src: url('fonts/C64_Pro_Mono-STYLE.woff2') format('woff2'),
          url('fonts/C64_Pro_Mono-STYLE.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Pet Me 64';
+    src: url('fonts/PetMe64.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -60,7 +82,7 @@
 
 body {
     zoom: var(--ui-scale);
-    font-family: 'C64 Pro Mono', 'Courier New', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', 'Courier New', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -138,7 +160,7 @@ h1 {
     background-color: var(--bg-dark);
     color: var(--text-primary);
     border: 1px solid var(--border-main);
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
     font-size: 8px;
 }
 
@@ -160,7 +182,7 @@ button {
     margin: 0;
     padding: 6px 12px;
     font-size: 8px;
-    font-family: 'C64 Pro Mono', 'Courier New', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', 'Courier New', monospace;
     background-color: var(--btn-bg);
     color: var(--btn-text);
     border: 2px solid var(--btn-border);
@@ -254,7 +276,7 @@ button:hover {
     box-sizing: border-box;
     margin: 0;
     line-height: normal;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .step select.instrument-select {
@@ -301,7 +323,7 @@ button:hover {
     display: flex;
     flex-direction: column;
     color: var(--text-primary);
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .modal-header {
@@ -379,7 +401,7 @@ button:hover {
     padding: 5px;
     margin-right: 10px;
     width: 200px;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .instrument-selector button {
@@ -447,7 +469,7 @@ button:hover {
     padding: 6px;
     width: 100%;
     box-sizing: border-box;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .param-row input[type="range"] {
@@ -481,7 +503,7 @@ button:hover {
     padding: 6px;
     width: 100%;
     box-sizing: border-box;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .param-row input[type="checkbox"] {
@@ -494,7 +516,7 @@ button:hover {
     color: var(--text-primary);
     border: 1px solid var(--border-main);
     padding: 4px 6px;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .param-hint {
@@ -610,7 +632,7 @@ button:hover {
 .sequence-controls select {
     flex-grow: 1;
     min-width: 200px;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .pattern-list {
@@ -789,7 +811,7 @@ body.keyboard-input-active textarea {
     background-color: var(--bg-dark);
     color: var(--c64-yellow);
     padding: 2px 4px;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
     font-size: 8px;
 }
 
@@ -802,7 +824,7 @@ body.keyboard-input-active textarea {
 
 .keyboard-layout p {
     margin: 6px 0;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
 }
 
 .keyboard-layout code {
@@ -948,7 +970,7 @@ body.keyboard-input-active textarea {
     color: var(--text-primary);
     border: 1px solid var(--border-main);
     padding: 2px 4px;
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
     font-size: 8px;
 }
 
@@ -958,7 +980,7 @@ body.keyboard-input-active textarea {
 }
 
 .table-hex {
-    font-family: 'C64 Pro Mono', monospace;
+    font-family: 'C64 Pro Mono', 'Pet Me 64', monospace;
     color: var(--c64-lightgray);
     font-size: 8px;
     text-align: center;

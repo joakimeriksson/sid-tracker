@@ -20,11 +20,23 @@ It is GPL because it builds on GPL work:
       submodule and providing the SID emulation the tracker plays through.
       https://github.com/joakimeriksson/jsSID
 
-Not covered by this license, and deliberately not in this repository:
+Bundled here under its own license, not the GPL:
 
-  fonts/ - C64 Pro Mono is Copyright Style (https://style64.org/c64-truetype).
-      Used via @font-face as their license permits; the files are not
-      redistributed here. See .gitignore.
+  fonts/PetMe64.ttf - Pet Me 64, Copyright Rebecca G. Bettencourt / Kreative
+      Software (https://www.kreativekorp.com/software/fonts/c64/). Distributed
+      under the Kreative Software Relay Fonts Free Use License v1.2f, which
+      permits redistribution provided the license travels with it and credit is
+      given - both done: the license is at fonts/PetMe64-FreeLicense.txt,
+      verbatim, and the credit is this paragraph. The font may not be modified,
+      so it ships exactly as downloaded: unsubsetted .ttf, not converted.
+
+Not covered by any of the above, and deliberately not in this repository:
+
+  C64 Pro Mono - Copyright Style (https://style64.org/c64-truetype). style.css
+      will use it if you put it in fonts/ yourself, which their license allows
+      via @font-face. It is not committed here because that same license
+      forbids providing the files for direct download from any website, and a
+      public repository does exactly that. See .gitignore.
 
   SID tunes - third-party .sid files are their composers' copyrighted work and
       are never committed. They are fetched from HVSC on demand through the
