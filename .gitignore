@@ -26,3 +26,6 @@ sids/*.sid
 # yourself from https://style64.org/c64-truetype (C64 TrueType v1.2.1/Style)
 # and drop the .woff/.woff2 in here, unmodified and under their own filenames.
 fonts/
+
+# Pages build output (tools/build-pages.mjs)
+_site/

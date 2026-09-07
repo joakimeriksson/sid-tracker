@@ -997,7 +997,7 @@ export const DEFAULT_SONG_URL = 'sids/default-song.sng';
 /**
  * Which .sng the tracker boots with. `?song=` overrides it, which is how the
  * birthday build is tested against the same files it deploys - the build
- * itself just swaps sids/default-song.sng (scripts/build-pages.mjs `overlay`),
+ * itself just swaps sids/default-song.sng (tools/build-pages.mjs `overlay`),
  * so the deployed page needs no query string.
  *
  * Only a relative path is accepted: this value is fetched, and an attacker-

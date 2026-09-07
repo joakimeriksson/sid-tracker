@@ -1,0 +1,57 @@
+# Build the tracker and publish it to GitHub Pages, with the Happy Birthday
+# variant alongside it. Deploys from the Actions artifact rather than a
+# gh-pages branch, so no build output is ever committed.
+#
+# Enable once under Settings -> Pages -> Source: "GitHub Actions".
+
+name: Deploy tracker to Pages
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish; queue at most one more.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # submodules is REQUIRED, not a nicety: the tracker loads its whole SID
+      # audio engine from the jsSID submodule (nine script tags in
+      # index.html). checkout's default is submodules:false, which leaves that
+      # directory EMPTY - the page then deploys and renders perfectly while
+      # every one of those scripts 404s, so the tracker is silent and nothing
+      # in the build log says why.
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build site
+        run: node tools/build-pages.mjs --out _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
