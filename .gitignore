@@ -17,3 +17,12 @@ hvsc-cache/
 # (tools/serve.py) into hvsc-cache/ above. Songs authored HERE live as .sng
 # (sids/default-song.sng), which is deliberately still tracked.
 sids/*.sid
+
+# The C64 Pro Mono webfont is Style's work, and their license draws a line
+# exactly here: embedding it via @font-face for display on a web site is
+# allowed, but redistributing the files "in any font collection" - which a
+# public repo is - is not. So style.css references fonts/ and every
+# font-family falls back to plain monospace when it is absent. Fetch it
+# yourself from https://style64.org/c64-truetype (C64 TrueType v1.2.1/Style)
+# and drop the .woff/.woff2 in here, unmodified and under their own filenames.
+fonts/

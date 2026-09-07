@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>SID Synth - Timing Test</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <style>
+    body { max-width: 980px; margin: 24px auto; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .panel { background: #111; border: 1px solid #333; padding: 12px; margin: 8px 0; }
+    .panel h3 { margin: 0 0 8px 0; }
+    #log { font-family: monospace; font-size: 12px; background: #000; color: #0f0; padding: 8px; height: 200px; overflow: auto; white-space: pre-wrap; }
+    button { padding: 6px 10px; }
+    code { background: #000; padding: 0 4px; }
+  </style>
+  <!-- jsSID runtime (non-module) -->
+  <script src="jsSID/js/stream.js"></script>
+  <script src="jsSID/js/jssid.core.js"></script>
+  <script src="jsSID/js/jssid.tinysid.js"></script>
+  <script src="jsSID/js/jssid.fastsid.js"></script>
+  <script src="jsSID/js/jssid.mos6510.js"></script>
+  <script src="jsSID/js/jssid.sidplayer.js"></script>
+  <script src="jsSID/js/pico.dev.js"></script>
+</head>
+<body>
+  <h1>SID Synth - Timing Test</h1>
+
+  <div class="panel">
+    <h3>Audio Engine</h3>
+    <div class="row">
+      <button id="initAudio">Init Audio</button>
+      <button id="playBtn">Play</button>
+      <button id="stopBtn">Stop</button>
+      <span id="engineInfo"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Patterns</h3>
+    <div class="row">
+      <button id="loadRetrigger">Load Same-Note Retrigger</button>
+      <button id="loadRestHit">Load Rest→Hit</button>
+      <button id="loadArp">Load Arpeggio Sustain</button>
+    </div>
+    <div>Voice 0 uses instrument 4 (Pulse/PWM), 120 BPM, 16 steps.</div>
+  </div>
+
+  <div class="panel">
+    <h3>Debug Log</h3>
+    <div id="log"></div>
+  </div>
+
+  <script type="module">
+    import { initSynth, sidPlayer, instruments } from './synth.js';
+    import { patternManager } from './pattern-manager.js';
+    import { startPlayback, stopPlayback } from './sequencer.js';
+    import { tempoControl } from './tempo-control.js';
+
+    const logEl = document.getElementById('log');
+    const appendLog = (msg) => {
+      const ts = new Date().toISOString().slice(11,19);
+      logEl.textContent += `[${ts}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    };
+
+    const engineInfo = document.getElementById('engineInfo');
+
+    function showEngineInfo() {
+      const ac = window.audioContext;
+      const sr = ac ? ac.sampleRate : '—';
+      const buf = window.scriptProcessor ? window.scriptProcessor.bufferSize : (window.sidWorkletNode ? 128 : '—');
+      const mode = window.sidWorkletNode ? 'AudioWorklet' : (window.scriptProcessor ? 'ScriptProcessor' : '—');
+      engineInfo.textContent = `Mode: ${mode}, SampleRate: ${sr}, Buffer: ${buf}`;
+    }
+
+    function safeInit() {
+      if (!sidPlayer) {
+        initSynth();
+        window.scriptProcessor && appendLog(`Audio initialized. BufferSize=${window.scriptProcessor.bufferSize}`);
+      } else {
+        appendLog('Audio already initialized');
+      }
+      showEngineInfo();
+    }
+
+    function clearAllPatterns() {
+      for (let p = 0; p < patternManager.patterns.length; p++) {
+        patternManager.patterns[p].clear();
+        patternManager.patterns[p].length = 16;
+      }
+      patternManager.currentPatternIndex = 0;
+    }
+
+    function loadRetriggerPattern() {
+      clearAllPatterns();
+      const pat = patternManager.getCurrentPattern();
+      pat.length = 16;
+      for (let s = 0; s < pat.length; s++) {
+        pat.setStepData(0, s, 'C-4', 4); // Pulse/PWM
+        pat.setStepData(1, s, '', 0);
+        pat.setStepData(2, s, '', 0);
+      }
+      appendLog('Loaded Same-Note Retrigger pattern (C-4 x16, voice 0)');
+    }
+
+    function loadRestHitPattern() {
+      clearAllPatterns();
+      const pat = patternManager.getCurrentPattern();
+      pat.length = 16;
+      for (let s = 0; s < pat.length; s++) {
+        const note = (s % 2 === 0) ? 'R' : 'C-4';
+        pat.setStepData(0, s, note, 4);
+      }
+      appendLog('Loaded Rest→Hit pattern (R, C-4 alternating, voice 0)');
+    }
+
+    function loadArpPattern() {
+      clearAllPatterns();
+      // Ensure an arpeggio-capable instrument exists; use index 8 (Arp Major) if present
+      const arpIndex = Math.min(8, instruments.length - 1);
+      const pat = patternManager.getCurrentPattern();
+      pat.length = 16;
+      pat.setStepData(0, 0, 'C-4', arpIndex);
+      for (let s = 1; s < pat.length; s++) pat.setStepData(0, s, '---', arpIndex);
+      appendLog(`Loaded Arpeggio Sustain pattern (C-4 + sustain, instrument ${arpIndex})`);
+    }
+
+    document.getElementById('initAudio').addEventListener('click', async () => {
+      safeInit();
+      if (window.audioContext && window.audioContext.state === 'suspended') {
+        await window.audioContext.resume();
+      }
+      showEngineInfo();
+    });
+
+    document.getElementById('playBtn').addEventListener('click', async () => {
+      safeInit();
+      if (window.audioContext && window.audioContext.state === 'suspended') {
+        await window.audioContext.resume();
+      }
+      tempoControl.setBPM(120);
+      startPlayback();
+      appendLog('Playback started');
+      showEngineInfo();
+    });
+
+    document.getElementById('stopBtn').addEventListener('click', () => {
+      stopPlayback();
+      appendLog('Playback stopped');
+    });
+
+    document.getElementById('loadRetrigger').addEventListener('click', loadRetriggerPattern);
+    document.getElementById('loadRestHit').addEventListener('click', loadRestHitPattern);
+    document.getElementById('loadArp').addEventListener('click', loadArpPattern);
+
+    // Auto-init info
+    showEngineInfo();
+  </script>
+</body>
+</html>

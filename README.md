@@ -37,7 +37,15 @@ A modern web-based music tracker that emulates the legendary Commodore 64 SID (S
 ## Getting Started
 
 ### Quick Start
-1. Open `index.html` in a modern web browser
+```bash
+git clone --recurse-submodules https://github.com/joakimeriksson/sid-tracker.git
+```
+The `--recurse-submodules` is not optional: the whole SID audio engine is loaded
+from the `jsSID` submodule by nine script tags in `index.html`. Clone without it
+and the page renders perfectly while every one of those 404s - a silent tracker.
+Already cloned flat? `git submodule update --init`.
+
+1. Serve the folder (`make serve`) and open it, or open `index.html` directly
 2. Click anywhere to initialize audio (browser requirement)
 3. Click "Play" to hear the demo pattern
 4. Import a GoatTracker2 .sng file to load existing songs
@@ -162,7 +170,21 @@ Then hard-reload the browser (Shift+Reload).
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+**GNU General Public License v2 or later** - see [LICENSE](LICENSE).
+
+This is GPL because it stands on GPL work: the GoatTracker2 reference sources in
+`gt2-src/` (Lasse Oorni and contributors) and the jsSID submodule (Joe Hohertz,
+carrying reSID and TinySID lineage). [NOTICE](NOTICE) records who wrote what.
+
+It is an independent implementation, not a port: the engine is written from
+scratch for AudioWorklet and *verified* against GoatTracker2 rather than derived
+from it - `make verify` diffs its SID register writes against `gplay.c` frame by
+frame. It is not affiliated with or endorsed by the GoatTracker2 project.
+
+The C64 Pro Mono font is not included. Style's license permits `@font-face` use
+but not redistribution, so `fonts/` is gitignored and every rule falls back to
+plain monospace. Grab it from [style64.org](https://style64.org/c64-truetype) and
+drop the `.woff`/`.woff2` in `fonts/` to get the real thing.
 
 ---
 

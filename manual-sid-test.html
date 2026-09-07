@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual SID Test</title>
+</head>
+<body>
+    <h1>Manual SID Test</h1>
+    <button id="testButton">Test Manual SID</button>
+    <button id="stopButton">Stop</button>
+    <div id="status"></div>
+
+    <script src="jsSID/js/stream.js"></script>
+    <script src="jsSID/js/jssid.core.js"></script>
+    <script src="jsSID/js/jssid.tinysid.js"></script>
+    <script src="jsSID/js/jssid.fastsid.js"></script>
+    <script src="jsSID/js/jssid.mos6510.js"></script>
+    <script src="jsSID/js/jssid.sidplayer.js"></script>
+    <script src="jsSID/js/pico.js"></script>
+
+    <script>
+        let player = null;
+        let isPlaying = false;
+
+        document.getElementById('testButton').addEventListener('click', () => {
+            const status = document.getElementById('status');
+            
+            try {
+                status.innerHTML = 'Testing manual SID synthesis...<br>';
+                
+                // Test the TinySID synth directly without SID file
+                status.innerHTML += 'Creating TinySID synthesizer...<br>';
+                const synth = new jsSID.TinySID({
+                    sampleRate: pico.samplerate,
+                    memory: new Array(65536).fill(0) // 64K zero memory
+                });
+                
+                status.innerHTML += `Synth created: ${synth ? '✅' : '❌'}<br>`;
+                status.innerHTML += `Sample rate: ${synth.mix_freq}<br>`;
+                
+                // Manually configure SID registers for a simple tone
+                status.innerHTML += 'Setting up simple tone...<br>';
+                
+                // Voice 0: frequency = 440Hz (A4)
+                const freq = Math.floor(440 * 65536 / (985248 / 256));
+                synth.poke(0, freq & 0xFF);       // FREQ LO
+                synth.poke(1, (freq >> 8) & 0xFF); // FREQ HI
+                
+                // ADSR: fast attack, medium decay, high sustain, medium release
+                synth.poke(5, 0x09);  // Attack/Decay
+                synth.poke(6, 0xF0);  // Sustain/Release
+                
+                // Waveform: Triangle + Gate
+                synth.poke(4, 0x11);  // Triangle waveform + Gate
+                
+                // Volume
+                synth.poke(24, 15);   // Max volume
+                
+                status.innerHTML += 'SID registers configured<br>';
+                
+                // Test direct synthesis
+                status.innerHTML += 'Testing direct synthesis...<br>';
+                const testBuffer = new Array(1024);
+                synth.generateIntoBuffer(1024, testBuffer, 0);
+                
+                // Check for audio data
+                let hasAudio = false;
+                let maxSample = 0;
+                for (let i = 0; i < testBuffer.length; i++) {
+                    if (testBuffer[i] !== 0) {
+                        hasAudio = true;
+                        maxSample = Math.max(maxSample, Math.abs(testBuffer[i]));
+                    }
+                }
+                
+                status.innerHTML += `Direct synthesis - Has audio: ${hasAudio}<br>`;
+                status.innerHTML += `Max sample: ${maxSample}<br>`;
+                
+                if (hasAudio) {
+                    status.innerHTML += '<br>✅ TinySID is working!<br>';
+                    
+                    // Now test with pico.js
+                    status.innerHTML += 'Testing with pico.js...<br>';
+                    
+                    // Create a simple generator that uses our synth
+                    const generator = {
+                        process: function(leftChannel, rightChannel) {
+                            synth.generateIntoBuffer(leftChannel.length, leftChannel, 0);
+                            // Copy left to right
+                            for (let i = 0; i < leftChannel.length; i++) {
+                                rightChannel[i] = leftChannel[i];
+                            }
+                        }
+                    };
+                    
+                    pico.play(generator);
+                    isPlaying = true;
+                    
+                    status.innerHTML += `pico.isPlaying: ${pico.isPlaying}<br>`;
+                    status.innerHTML += '🎵 Should be hearing a 440Hz tone!<br>';
+                    
+                } else {
+                    status.innerHTML += '<br>❌ TinySID is not generating audio<br>';
+                    
+                    // Let's debug the SID state
+                    status.innerHTML += '<br>Debug SID state:<br>';
+                    status.innerHTML += `Voice 0 freq: ${synth.v[0].freq}<br>`;
+                    status.innerHTML += `Voice 0 wave: ${synth.v[0].wave}<br>`;
+                    status.innerHTML += `Voice 0 ad: ${synth.v[0].ad}<br>`;
+                    status.innerHTML += `Voice 0 sr: ${synth.v[0].sr}<br>`;
+                    status.innerHTML += `Volume: ${synth.ftp_vol}<br>`;
+                    
+                    // Try a different approach - poke registers one by one
+                    status.innerHTML += '<br>Trying register poke method...<br>';
+                    for (let i = 0; i < 25; i++) {
+                        synth.poke(i, 0); // Clear all registers first
+                    }
+                    
+                    // Set up voice 0 again
+                    synth.poke(0, 0x00);  // FREQ LO
+                    synth.poke(1, 0x10);  // FREQ HI (simpler frequency)
+                    synth.poke(5, 0x09);  // Attack/Decay
+                    synth.poke(6, 0xF0);  // Sustain/Release
+                    synth.poke(4, 0x11);  // Triangle + Gate
+                    synth.poke(24, 15);   // Volume
+                    
+                    // Test again
+                    synth.generateIntoBuffer(1024, testBuffer, 0);
+                    hasAudio = false;
+                    maxSample = 0;
+                    for (let i = 0; i < testBuffer.length; i++) {
+                        if (testBuffer[i] !== 0) {
+                            hasAudio = true;
+                            maxSample = Math.max(maxSample, Math.abs(testBuffer[i]));
+                        }
+                    }
+                    status.innerHTML += `After register poke - Has audio: ${hasAudio}, Max: ${maxSample}<br>`;
+                }
+                
+            } catch (error) {
+                status.innerHTML += `❌ Error: ${error.message}<br>`;
+                console.error('Test failed:', error);
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            if (isPlaying) {
+                pico.pause();
+                isPlaying = false;
+                document.getElementById('status').innerHTML += '⏹️ Stopped<br>';
+            }
+        });
+    </script>
+</body>
+</html>

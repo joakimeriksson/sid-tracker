@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple jsSID Test</title>
+</head>
+<body>
+    <h1>Simple jsSID Test</h1>
+    <button id="testButton">Test SID Playback</button>
+    <button id="stopButton">Stop</button>
+    <div id="status"></div>
+
+    <!-- Load jsSID exactly like the demo -->
+    <script src="jsSID/js/stream.js"></script>
+    <script src="jsSID/js/jssid.core.js"></script>
+    <script src="jsSID/js/jssid.tinysid.js"></script>
+    <script src="jsSID/js/jssid.fastsid.js"></script>
+    <script src="jsSID/js/jssid.mos6510.js"></script>
+    <script src="jsSID/js/jssid.sidplayer.js"></script>
+    <script src="jsSID/js/pico.js"></script>
+
+    <script>
+        let player = null;
+        let isPlaying = false;
+
+        document.getElementById('testButton').addEventListener('click', async () => {
+            const status = document.getElementById('status');
+            
+            try {
+                status.innerHTML = 'Testing jsSID setup...<br>';
+                
+                // Check if libraries are loaded
+                status.innerHTML += `jsSID: ${typeof jsSID !== 'undefined' ? '✅' : '❌'}<br>`;
+                status.innerHTML += `pico: ${typeof pico !== 'undefined' ? '✅' : '❌'}<br>`;
+                status.innerHTML += `Stream: ${typeof Stream !== 'undefined' ? '✅' : '❌'}<br>`;
+                
+                if (typeof jsSID === 'undefined') {
+                    throw new Error('jsSID not loaded');
+                }
+                
+                if (typeof pico === 'undefined') {
+                    throw new Error('pico.js not loaded');
+                }
+                
+                // Create player
+                status.innerHTML += 'Creating SID player...<br>';
+                player = new jsSID.SIDPlayer({ 
+                    quality: jsSID.quality.low, 
+                    clock: jsSID.chip.clock.PAL,
+                    model: jsSID.chip.model.MOS6581,
+                    sampleRate: pico.samplerate 
+                });
+                
+                status.innerHTML += `Player created: ${player ? '✅' : '❌'}<br>`;
+                status.innerHTML += `Sample rate: ${pico.samplerate}<br>`;
+                
+                // Try to load the test SID file
+                status.innerHTML += 'Loading SID file...<br>';
+                const response = await fetch('jsSID/sid/real/Monty_on_the_Run.sid');
+                if (!response.ok) {
+                    throw new Error('Could not load SID file');
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                let sidString = '';
+                const uint8Array = new Uint8Array(arrayBuffer);
+                for (let i = 0; i < uint8Array.length; i++) {
+                    sidString += String.fromCharCode(uint8Array[i]);
+                }
+                
+                status.innerHTML += `SID file loaded: ${sidString.length} bytes<br>`;
+                
+                // Load into player
+                player.loadFileFromData(sidString);
+                status.innerHTML += `Player loaded SID file<br>`;
+                
+                // Start playback
+                status.innerHTML += 'Starting playback...<br>';
+                player.play();
+                isPlaying = true;
+                
+                status.innerHTML += '🎵 Should be playing now!<br>';
+                
+            } catch (error) {
+                status.innerHTML += `❌ Error: ${error.message}<br>`;
+                console.error('Test failed:', error);
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            if (player && isPlaying) {
+                player.stop();
+                isPlaying = false;
+                document.getElementById('status').innerHTML += '⏹️ Stopped<br>';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pico.js Audio Test</title>
+</head>
+<body>
+    <h1>Pico.js Audio Test</h1>
+    <button id="testButton">Test Pico Audio</button>
+    <button id="stopButton">Stop</button>
+    <div id="status"></div>
+
+    <script src="jsSID/js/pico.js"></script>
+
+    <script>
+        let isPlaying = false;
+        
+        // Create a simple tone generator
+        function ToneGenerator() {
+            this.phase = 0;
+            this.frequency = 440; // A4
+            this.sampleRate = 44100;
+            
+            this.process = function(leftChannel, rightChannel) {
+                const phaseIncrement = (this.frequency * 2 * Math.PI) / this.sampleRate;
+                
+                for (let i = 0; i < leftChannel.length; i++) {
+                    const sample = Math.sin(this.phase) * 0.2; // 20% volume
+                    leftChannel[i] = sample;
+                    rightChannel[i] = sample;
+                    
+                    this.phase += phaseIncrement;
+                    if (this.phase > 2 * Math.PI) {
+                        this.phase -= 2 * Math.PI;
+                    }
+                }
+            };
+        }
+
+        document.getElementById('testButton').addEventListener('click', () => {
+            const status = document.getElementById('status');
+            
+            try {
+                status.innerHTML = 'Testing pico.js...<br>';
+                
+                // Check if pico is loaded
+                status.innerHTML += `pico available: ${typeof pico !== 'undefined' ? '✅' : '❌'}<br>`;
+                status.innerHTML += `pico.env: ${pico.env}<br>`;
+                status.innerHTML += `pico.samplerate: ${pico.samplerate}<br>`;
+                status.innerHTML += `pico.isPlaying: ${pico.isPlaying}<br>`;
+                
+                if (typeof pico === 'undefined') {
+                    throw new Error('pico.js not loaded');
+                }
+                
+                // Create tone generator
+                const generator = new ToneGenerator();
+                
+                // Start playback
+                status.innerHTML += 'Starting pico playback...<br>';
+                pico.play(generator);
+                isPlaying = true;
+                
+                status.innerHTML += `🎵 Playing 440Hz tone!<br>`;
+                status.innerHTML += `pico.isPlaying after start: ${pico.isPlaying}<br>`;
+                
+            } catch (error) {
+                status.innerHTML += `❌ Error: ${error.message}<br>`;
+                console.error('Pico test failed:', error);
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            if (isPlaying) {
+                pico.pause();
+                isPlaying = false;
+                document.getElementById('status').innerHTML += '⏹️ Stopped<br>';
+            }
+        });
+    </script>
+</body>
+</html>

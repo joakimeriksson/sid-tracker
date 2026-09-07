@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>jsSID Debug Test</title>
+</head>
+<body>
+    <h1>jsSID Debug Test</h1>
+    <button id="testButton">Test jsSID Direct</button>
+    <button id="stopButton">Stop</button>
+    <div id="status"></div>
+
+    <!-- Load jsSID exactly like the demo -->
+    <script src="jsSID/js/stream.js"></script>
+    <script src="jsSID/js/jssid.core.js"></script>
+    <script src="jsSID/js/jssid.tinysid.js"></script>
+    <script src="jsSID/js/jssid.fastsid.js"></script>
+    <script src="jsSID/js/jssid.mos6510.js"></script>
+    <script src="jsSID/js/jssid.sidplayer.js"></script>
+    <script src="jsSID/js/pico.js"></script>
+
+    <script>
+        let player = null;
+        let isPlaying = false;
+
+        document.getElementById('testButton').addEventListener('click', async () => {
+            const status = document.getElementById('status');
+            
+            try {
+                status.innerHTML = 'Testing jsSID direct audio generation...<br>';
+                
+                // Check if libraries are loaded
+                status.innerHTML += `jsSID: ${typeof jsSID !== 'undefined' ? '✅' : '❌'}<br>`;
+                status.innerHTML += `pico: ${typeof pico !== 'undefined' ? '✅' : '❌'}<br>`;
+                status.innerHTML += `pico.env: ${pico.env}<br>`;
+                status.innerHTML += `pico.samplerate: ${pico.samplerate}<br>`;
+                
+                // Create SID player
+                status.innerHTML += 'Creating SID player...<br>';
+                player = new jsSID.SIDPlayer({ 
+                    quality: jsSID.quality.low, 
+                    clock: jsSID.chip.clock.PAL,
+                    model: jsSID.chip.model.MOS6581
+                });
+                
+                status.innerHTML += `Player created: ${player ? '✅' : '❌'}<br>`;
+                status.innerHTML += `Player synth: ${player.synth ? '✅' : '❌'}<br>`;
+                status.innerHTML += `Synth sample rate: ${player.synth ? player.synth.mix_freq : 'N/A'}<br>`;
+                
+                // Try to load a SID file
+                status.innerHTML += 'Loading Monty_on_the_Run.sid...<br>';
+                const response = await fetch('jsSID/sid/real/Monty_on_the_Run.sid');
+                if (!response.ok) {
+                    throw new Error('Could not load SID file');
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                let sidString = '';
+                const uint8Array = new Uint8Array(arrayBuffer);
+                for (let i = 0; i < uint8Array.length; i++) {
+                    sidString += String.fromCharCode(uint8Array[i]);
+                }
+                
+                status.innerHTML += `SID file loaded: ${sidString.length} bytes<br>`;
+                
+                // Load into player
+                player.loadFileFromData(sidString);
+                const sidFile = player.getSidFile();
+                
+                status.innerHTML += `SID file parsed: ${sidFile ? '✅' : '❌'}<br>`;
+                if (sidFile) {
+                    status.innerHTML += `Title: ${sidFile.name}<br>`;
+                    status.innerHTML += `Play addr: $${sidFile.play_addr.toString(16)}<br>`;
+                    status.innerHTML += `Init addr: $${sidFile.init_addr.toString(16)}<br>`;
+                }
+                
+                status.innerHTML += `Player ready after load: ${player.ready}<br>`;
+                status.innerHTML += `Player finished after load: ${player.finished}<br>`;
+                
+                // Key insight: We need to call play() to set ready=true, then test generation
+                status.innerHTML += '<br>Calling play() to initialize player state...<br>';
+                player.play();
+                
+                status.innerHTML += `Player ready after play(): ${player.ready}<br>`;
+                status.innerHTML += `Player finished after play(): ${player.finished}<br>`;
+                status.innerHTML += `pico.isPlaying: ${pico.isPlaying}<br>`;
+                
+                // Now test audio generation
+                status.innerHTML += '<br>Testing audio generation (should work now)...<br>';
+                const testBuffer = new Array(1024);
+                const generated = player.generateIntoBuffer(1024, testBuffer, 0);
+                
+                status.innerHTML += `Generated ${generated} samples<br>`;
+                
+                // Check if we got any non-zero audio data
+                let hasAudio = false;
+                let maxSample = 0;
+                for (let i = 0; i < Math.min(generated, testBuffer.length); i++) {
+                    if (testBuffer[i] !== 0) {
+                        hasAudio = true;
+                        maxSample = Math.max(maxSample, Math.abs(testBuffer[i]));
+                    }
+                }
+                
+                status.innerHTML += `Has non-zero audio: ${hasAudio}<br>`;
+                status.innerHTML += `Max sample value: ${maxSample}<br>`;
+                
+                if (hasAudio) {
+                    status.innerHTML += '<br>✅ jsSID is generating audio data!<br>';
+                    status.innerHTML += 'Now testing with pico.js...<br>';
+                    
+                    // Start playback
+                    player.play();
+                    isPlaying = true;
+                    
+                    status.innerHTML += `pico.isPlaying: ${pico.isPlaying}<br>`;
+                    status.innerHTML += `player.ready: ${player.ready}<br>`;
+                    status.innerHTML += '🎵 Should be playing now!<br>';
+                } else {
+                    status.innerHTML += '<br>❌ jsSID is not generating any audio data<br>';
+                    status.innerHTML += 'This suggests the SID file is not being processed correctly.<br>';
+                }
+                
+            } catch (error) {
+                status.innerHTML += `❌ Error: ${error.message}<br>`;
+                console.error('Test failed:', error);
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            if (player && isPlaying) {
+                player.stop();
+                isPlaying = false;
+                document.getElementById('status').innerHTML += '⏹️ Stopped<br>';
+            }
+        });
+    </script>
+</body>
+</html>

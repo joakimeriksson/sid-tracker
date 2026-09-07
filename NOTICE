@@ -1,0 +1,31 @@
+SID Tracker
+Copyright (c) Joakim Eriksson
+
+Licensed under the GNU General Public License v2 or later. See LICENSE.
+
+This project is an independent implementation. It is NOT affiliated with,
+endorsed by, or a port of GoatTracker2 - it is a separate AudioWorklet engine
+written in JavaScript and verified against GoatTracker2's output.
+
+It is GPL because it builds on GPL work:
+
+  gt2-src/ - GoatTracker v2.76 by Lasse Oorni (Cadaver) and contributors,
+      GPL v2 or later. Kept in-tree as the reference implementation: the
+      exporter reuses its player driver, and `make verify` diffs this
+      tracker's SID register writes against gplay.c frame by frame.
+      https://sourceforge.net/projects/goattracker2/
+
+  jsSID/ - a fork of jsSID by Joe Hohertz, GPL v2, carrying reSID and TinySID
+      lineage (Dag Lem; Tammo Hinrichs and Rainer Sinsch). Loaded as a git
+      submodule and providing the SID emulation the tracker plays through.
+      https://github.com/joakimeriksson/jsSID
+
+Not covered by this license, and deliberately not in this repository:
+
+  fonts/ - C64 Pro Mono is Copyright Style (https://style64.org/c64-truetype).
+      Used via @font-face as their license permits; the files are not
+      redistributed here. See .gitignore.
+
+  SID tunes - third-party .sid files are their composers' copyrighted work and
+      are never committed. They are fetched from HVSC on demand through the
+      /hvsc/ proxy in tools/serve.py. Songs authored here live as .sng.
